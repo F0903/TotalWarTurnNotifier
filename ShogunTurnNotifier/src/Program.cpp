@@ -1,11 +1,18 @@
 #include <thread>
 #include <iostream>
+#include <fstream>
 #include <exception>
+#include <string>
 
 import ShogunProcessReader;
+import AudioEngine;
 
 int main()
 {
+	auto audio = AudioEngine();
+	audio.PlayFile("./media/sound.pcm");
+	return std::cin.get(); //Test
+
 	//TODO: Play an audio que when it is your turn.
 	auto shogun = ShogunProcessReader();
 	while (true)
