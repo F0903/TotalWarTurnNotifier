@@ -25,9 +25,6 @@
     <ClCompile Include="src\ShogunProcessReader.ixx" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="media\moon.pcm">
-      <DeploymentContent>true</DeploymentContent>
-    </None>
     <None Include="media\sound.pcm" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

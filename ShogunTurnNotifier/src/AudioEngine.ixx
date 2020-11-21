@@ -16,7 +16,7 @@ export module AudioEngine;
 
 export class AudioEngine
 {
-public:
+	public:
 	~AudioEngine()
 	{
 		deviceEnumerator->Release();
@@ -31,8 +31,8 @@ public:
 		SelectDefaultAudioOut();
 	}
 
-private:
-	static constexpr REFERENCE_TIME ReftimesPerSec = 2000000;
+	private:
+	static constexpr REFERENCE_TIME ReftimesPerSec = 10000000;
 	static constexpr REFERENCE_TIME ReftimesPerMillisec = ReftimesPerSec / 1000;
 
 	static constexpr CLSID CLSID_MMDeviceEnumerator = __uuidof(MMDeviceEnumerator);
@@ -46,9 +46,9 @@ private:
 
 	static inline void Error(const char* msg) { throw std::exception(msg); }
 
-    void InitializeCOM() const
+	void InitializeCOM() const
 	{
-		if (CoInitializeEx(NULL, COINIT::COINIT_MULTITHREADED) != S_OK)
+		if (CoInitialize(NULL) != S_OK)
 			Error("Could not initialize COM");
 		CHECK_WIN_ERR();
 	}
@@ -79,14 +79,17 @@ private:
 	//Ref: https://docs.microsoft.com/en-us/windows/win32/coreaudio/rendering-a-stream
 	void OutputStream(std::istream& writeStream)
 	{
-		if (selectedDevice->Activate(IID_IAudioClient, CLSCTX_ALL, NULL, (void**)&audioClient) != S_OK)
+		if (selectedDevice->Activate(IID_IAudioClient, CLSCTX_ALL, NULL, reinterpret_cast<void**>(&audioClient)) != S_OK)
 			Error("Could not activate audio device.");
 		CHECK_WIN_ERR();
-		
+
 		WAVEFORMATEX* mixFormat;
 		if (audioClient->GetMixFormat(&mixFormat) != S_OK)
 			Error("Could not get mix format.");
 		CHECK_WIN_ERR();
+
+		REFERENCE_TIME duration;
+		audioClient->GetDevicePeriod(0, &duration);
 
 		constexpr auto shareMode = AUDCLNT_SHAREMODE::AUDCLNT_SHAREMODE_SHARED;
 
@@ -105,8 +108,7 @@ private:
 				break;
 		}
 
-		//AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM
-		if (audioClient->Initialize(shareMode, 0, ReftimesPerSec, 0, mixFormat, NULL) != S_OK)
+		if (audioClient->Initialize(shareMode, AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM, duration, 0, mixFormat, NULL) != S_OK)
 			Error("Could not initialize audio client.");
 		CHECK_WIN_ERR();
 
@@ -127,9 +129,13 @@ private:
 			Error("Could not get buffer");
 		CHECK_WIN_ERR();
 
+		const auto write = [&writeStream, &data](const UINT32& amount)
+		{
+			writeStream.read(reinterpret_cast<char*>(data), amount);
+		};
+
 		// Load the initial data into the shared buffer.
-		const auto writeAmount = bufferFrameCount * static_cast<UINT32>(mixFormat->nBlockAlign);
-		writeStream.read(reinterpret_cast<char*>(data), writeAmount);
+		write(bufferFrameCount * static_cast<UINT32>(mixFormat->nBlockAlign));
 		CHECK_WIN_ERR();
 
 		DWORD bufferFlags = NULL;
@@ -137,14 +143,11 @@ private:
 			Error("Could not release buffer");
 		CHECK_WIN_ERR();
 
-		// Calculate the actual duration of the allocated buffer.
-		const REFERENCE_TIME actualDuration = (double)ReftimesPerSec * bufferFrameCount / mixFormat->nSamplesPerSec;
-
 		if (audioClient->Start() != S_OK)
 			Error("Could not start playing.");
 		CHECK_WIN_ERR();
 
-		const DWORD sleepDuration = (DWORD)(actualDuration / ReftimesPerMillisec / 2);
+		const DWORD sleepDuration = (DWORD)(duration / ReftimesPerMillisec / 2);
 
 		UINT32 currentFramesPadding = 0;
 		UINT32 currentFramesAvailable = 0;
@@ -165,8 +168,7 @@ private:
 				Error("Could not get buffer (2)");
 			CHECK_WIN_ERR();
 
-			const auto writeAmount = currentFramesAvailable * static_cast<UINT32>(mixFormat->nBlockAlign);
-			writeStream.read(reinterpret_cast<char*>(data), writeAmount);
+			write(currentFramesAvailable * static_cast<UINT32>(mixFormat->nBlockAlign));
 			CHECK_WIN_ERR();
 
 			if (renderClient->ReleaseBuffer(currentFramesAvailable, bufferFlags) != S_OK)
@@ -189,7 +191,7 @@ private:
 		else			 std::cerr << "OutputStream terminated with error code: " << err << '\n';
 	}
 
-public:
+	public:
 	void PlayFile(const char* path)
 	{
 		std::ifstream f(path, std::ios::in | std::ios::binary);
