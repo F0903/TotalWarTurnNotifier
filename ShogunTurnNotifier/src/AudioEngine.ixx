@@ -8,7 +8,7 @@ module;
 #include <fstream>
 
 #ifdef _DEBUG
-#define CHECK_WIN_ERR() { const DWORD res = GetLastError(); if(res != S_OK) std::cerr << "Error code " << res << " at line " << __LINE__ << '\n'; }
+#define CHECK_WIN_ERR(ignore_code) { const DWORD res = GetLastError(); if(res != S_OK && res != ignore_code) std::cerr << "Error code " << res << " at line " << __LINE__ << '\n'; }
 #else
 #define CHECK_WIN_ERR() 
 #endif
@@ -50,18 +50,18 @@ export class AudioEngine
 	{
 		if (CoInitialize(NULL) != S_OK)
 			Error("Could not initialize COM");
-		CHECK_WIN_ERR();
+		CHECK_WIN_ERR(0);
 	}
 
 	void SelectDefaultAudioOut()
 	{
 		if (CoCreateInstance(CLSID_MMDeviceEnumerator, NULL, CLSCTX_ALL, IID_IMMDeviceEnumerator, (void**)&deviceEnumerator) != S_OK)
 			Error("Could not create audio enumerator instance.");
-		CHECK_WIN_ERR();
+		CHECK_WIN_ERR(0);
 
 		if (deviceEnumerator->GetDefaultAudioEndpoint(EDataFlow::eRender, ERole::eConsole, &selectedDevice) != S_OK)
 			Error("Could not get default audio device.");
-		CHECK_WIN_ERR();
+		CHECK_WIN_ERR(0);
 
 		IPropertyStore* properties;
 		selectedDevice->OpenPropertyStore(STGM_READ, &properties);
@@ -79,14 +79,16 @@ export class AudioEngine
 	//Ref: https://docs.microsoft.com/en-us/windows/win32/coreaudio/rendering-a-stream
 	void OutputStream(std::istream& writeStream)
 	{
+		//TODO: Make this actually output something...
+
 		if (selectedDevice->Activate(IID_IAudioClient, CLSCTX_ALL, NULL, reinterpret_cast<void**>(&audioClient)) != S_OK)
 			Error("Could not activate audio device.");
-		CHECK_WIN_ERR();
+		CHECK_WIN_ERR(0);
 
 		WAVEFORMATEX* mixFormat;
 		if (audioClient->GetMixFormat(&mixFormat) != S_OK)
 			Error("Could not get mix format.");
-		CHECK_WIN_ERR();
+		CHECK_WIN_ERR(0);
 
 		REFERENCE_TIME duration;
 		audioClient->GetDevicePeriod(0, &duration);
@@ -110,24 +112,24 @@ export class AudioEngine
 
 		if (audioClient->Initialize(shareMode, AUDCLNT_STREAMFLAGS_AUTOCONVERTPCM, duration, 0, mixFormat, NULL) != S_OK)
 			Error("Could not initialize audio client.");
-		CHECK_WIN_ERR();
+		CHECK_WIN_ERR(0);
 
 		// Get the actual size of the allocated buffer.
 		UINT32 bufferFrameCount;
 		if (audioClient->GetBufferSize(&bufferFrameCount) != S_OK)
 			Error("Could not get buffer size.");
-		CHECK_WIN_ERR();
+		CHECK_WIN_ERR(0);
 
 		IAudioRenderClient* renderClient;
 		if (audioClient->GetService(IID_IAudioRenderClient, (void**)&renderClient) != S_OK)
 			Error("Could not get audio renderer service.");
-		CHECK_WIN_ERR();
+		CHECK_WIN_ERR(0);
 
 		// Grab the entire buffer for the initial fill operation.
 		BYTE* data;
 		if (renderClient->GetBuffer(bufferFrameCount, &data) != S_OK)
 			Error("Could not get buffer");
-		CHECK_WIN_ERR();
+		CHECK_WIN_ERR(0);
 
 		const auto write = [&writeStream, &data](const UINT32& amount)
 		{
@@ -136,16 +138,16 @@ export class AudioEngine
 
 		// Load the initial data into the shared buffer.
 		write(bufferFrameCount * static_cast<UINT32>(mixFormat->nBlockAlign));
-		CHECK_WIN_ERR();
+		CHECK_WIN_ERR(0);
 
 		DWORD bufferFlags = NULL;
 		if (renderClient->ReleaseBuffer(bufferFrameCount, bufferFlags) != S_OK)
 			Error("Could not release buffer");
-		CHECK_WIN_ERR();
+		CHECK_WIN_ERR(0);
 
 		if (audioClient->Start() != S_OK)
 			Error("Could not start playing.");
-		CHECK_WIN_ERR();
+		CHECK_WIN_ERR(0);
 
 		const DWORD sleepDuration = (DWORD)(duration / ReftimesPerMillisec / 2);
 
@@ -159,21 +161,21 @@ export class AudioEngine
 			// See how much buffer space is available.
 			if (audioClient->GetCurrentPadding(&currentFramesPadding) != S_OK)
 				Error("Could not get current padding.");
-			CHECK_WIN_ERR();
+			CHECK_WIN_ERR(0);
 
 			currentFramesAvailable = bufferFrameCount - currentFramesPadding;
 
 			// Grab all the available space in the shared buffer.
 			if (renderClient->GetBuffer(currentFramesAvailable, &data) != S_OK)
 				Error("Could not get buffer (2)");
-			CHECK_WIN_ERR();
+			CHECK_WIN_ERR(0);
 
 			write(currentFramesAvailable * static_cast<UINT32>(mixFormat->nBlockAlign));
-			CHECK_WIN_ERR();
+			CHECK_WIN_ERR(0);
 
 			if (renderClient->ReleaseBuffer(currentFramesAvailable, bufferFlags) != S_OK)
 				Error("Could not release stream (2)");
-			CHECK_WIN_ERR();
+			CHECK_WIN_ERR(0);
 		}
 
 		// Wait for last data in buffer to play before stopping.
@@ -181,7 +183,7 @@ export class AudioEngine
 
 		if (audioClient->Stop() != S_OK)
 			Error("Could not stop audio client.");
-		CHECK_WIN_ERR();
+		CHECK_WIN_ERR(0);
 
 		CoTaskMemFree(mixFormat);
 		renderClient->Release();
