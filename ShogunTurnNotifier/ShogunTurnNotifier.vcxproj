@@ -19,13 +19,12 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\AudioEngine.ixx" />
+    <ClCompile Include="src\IAudioEngine.ixx" />
     <ClCompile Include="src\ProcessReader.ixx" />
     <ClCompile Include="src\Program.cpp" />
+    <ClCompile Include="src\PSAudioEngine.ixx" />
     <ClCompile Include="src\ShogunProcessReader.ixx" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="media\sound.pcm" />
+    <ClCompile Include="src\WASAPIAudioEngine.ixx" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

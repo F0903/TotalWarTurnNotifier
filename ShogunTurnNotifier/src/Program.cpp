@@ -4,25 +4,31 @@
 #include <exception>
 #include <string>
 
+#include <Windows.h>
+
 import ShogunProcessReader;
-import AudioEngine;
+import PSAudioEngine;
 
 int main()
 {
-	auto audio = AudioEngine();
-	audio.PlayFile("./media/sound.pcm");
-	return std::cin.get(); //Test
-
-	//TODO: Play an audio que when it is your turn.
-	auto shogun = ShogunProcessReader();
+	auto audio = PSAudioEngine();
+	const auto shogun = ShogunProcessReader();
 	while (true)
 	{
-		std::cout.clear();
+		//TODO: Move this to custom console class.
+		system("cls");
 
-		try { std::cout << "Turn state: " << (shogun.IsMyTurn() ? "your turn" : "not your turn") << '\n'; }
+		try 
+		{ 
+			if (shogun.IsMyTurn())
+			{
+				std::cout << "It is your turn." << '\n';
+				audio.PlayFile("./media/sound.wav");
+			}			 
+		}
 		catch (const std::exception& ex) { std::cerr << ex.what() << '\n'; break; }
 
 		using namespace std::chrono_literals;
-		std::this_thread::sleep_for(1000ms);
+		std::this_thread::sleep_for(2000ms);
 	}
 }

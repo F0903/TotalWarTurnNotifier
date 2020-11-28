@@ -6,18 +6,19 @@ module;
 #include <exception>
 #include <iostream>
 #include <fstream>
+export module WASAPIAudioEngine;
+import IAudioEngine;
 
 #ifdef _DEBUG
 #define CHECK_WIN_ERR(ignore_code) { const DWORD res = GetLastError(); if(res != S_OK && res != ignore_code) std::cerr << "Error code " << res << " at line " << __LINE__ << '\n'; }
 #else
 #define CHECK_WIN_ERR() 
 #endif
-export module AudioEngine;
 
-export class AudioEngine
+export class WASAPIAudioEngine : IAudioEngine
 {
 	public:
-	~AudioEngine()
+	~WASAPIAudioEngine()
 	{
 		deviceEnumerator->Release();
 		selectedDevice->Release();
@@ -25,7 +26,7 @@ export class AudioEngine
 		CoUninitialize();
 	}
 
-	AudioEngine()
+	WASAPIAudioEngine()
 	{
 		InitializeCOM();
 		SelectDefaultAudioOut();
@@ -194,8 +195,9 @@ export class AudioEngine
 	}
 
 	public:
-	void PlayFile(const char* path)
+	void PlayFile(const char* path) override
 	{
+		//TODO: Make this whole thing work.
 		std::ifstream f(path, std::ios::in | std::ios::binary);
 		if (!f)
 			Error("Something went wrong whilst opening the audio file.");

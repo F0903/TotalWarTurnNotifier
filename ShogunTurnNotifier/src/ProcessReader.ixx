@@ -46,9 +46,9 @@ public:
 		throw std::exception("No process was found.");
 	}
 
-	uintptr_t GetModuleBaseAddress(DWORD processId, const wchar_t* moduleName) const
+	const uintptr_t GetModuleBaseAddress(DWORD processId, const wchar_t* moduleName) const
 	{
-		HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, processId);
+		const HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, processId);
 		if (snapshot == INVALID_HANDLE_VALUE)
 			throw std::exception("Snapshot module handle was invalid.");
 
@@ -73,16 +73,20 @@ public:
 	}
 
 	template<class T>
-	T ReadFromProc(const wchar_t* processName, uintptr_t addressToRead) const
+	const T ReadFromProc(const wchar_t* processName, uintptr_t addressToRead) const
 	{
-		auto* info = GetProcessInfo(processName);
+		const auto* info = GetProcessInfo(processName);
 		constexpr size_t bufSize = 1;
 		char buf[bufSize];
 		SIZE_T count;
 		if (!ReadProcessMemory(info->process, (LPCVOID)(info->baseAddress + addressToRead), buf, bufSize, &count))
 		{
-			auto err = GetLastError();
-			throw std::exception("Could not read from process.");
+			const auto err = GetLastError();
+			const auto errStr = std::to_string(err).c_str();
+		    char msgStr[50] = "Could not read process memory. Error: ";
+			// Using this instead of std::string due to the latter producing internal compiler error in latest MSVC.
+			strcat_s(msgStr, errStr);
+			throw std::exception(msgStr);
 		}
 		delete info;
 		if (count < 1)
