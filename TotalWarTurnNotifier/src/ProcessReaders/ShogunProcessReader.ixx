@@ -8,17 +8,17 @@ import ProcessReader;
 
 export class ShogunProcessReader : ProcessReader
 {
-private:
+	private:
 	const uintptr_t MyTurnBoolAddressOffset = 0; //TODO: Find better address
 
-	const wchar_t* ShogunProccessName = L"Shogun2.exe";
+	const wchar_t* ProccessName = L"Shogun2.exe";
 
 	void Init()
 	{
 
 	}
 
-public:
+	public:
 	~ShogunProcessReader()
 	{
 	}
@@ -30,7 +30,7 @@ public:
 
 	const bool IsMyTurn() const
 	{
-		bool value = ReadFromProc<bool>(ShogunProccessName, MyTurnBoolAddressOffset);
+		bool value = ReadFromProc<bool>(ProccessName, MyTurnBoolAddressOffset);
 		return value;
 	}
 };

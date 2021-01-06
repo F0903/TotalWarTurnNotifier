@@ -3,10 +3,10 @@ module;
 #pragma comment(lib, "Winmm.lib")
 
 #include <exception>
-export module PSAudioEngine;
-import IAudioEngine;
+export module PSAudioProvider;
+import IAudioProvider;
 
-export class PSAudioEngine : IAudioEngine
+export class PSAudioProvider : IAudioProvider
 {
 	public:
 	void PlayFile(const char* path) override

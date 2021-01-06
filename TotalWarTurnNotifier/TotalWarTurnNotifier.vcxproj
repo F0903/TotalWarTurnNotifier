@@ -19,12 +19,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\IAudioEngine.ixx" />
-    <ClCompile Include="src\ProcessReader.ixx" />
+    <ClCompile Include="src\AudioProviders\IAudioProvider.ixx" />
+    <ClCompile Include="src\ProcessReaders\ProcessReader.ixx" />
+    <ClCompile Include="src\ProcessReaders\WH2ProcessReader.ixx" />
     <ClCompile Include="src\Program.cpp" />
-    <ClCompile Include="src\PSAudioEngine.ixx" />
-    <ClCompile Include="src\ShogunProcessReader.ixx" />
-    <ClCompile Include="src\WASAPIAudioEngine.ixx" />
+    <ClCompile Include="src\AudioProviders\PSAudioProvider.ixx" />
+    <ClCompile Include="src\ProcessReaders\ShogunProcessReader.ixx" />
+    <ClCompile Include="src\AudioProviders\WASAPIAudioProvider.ixx" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

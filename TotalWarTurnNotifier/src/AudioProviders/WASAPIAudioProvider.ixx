@@ -7,7 +7,7 @@ module;
 #include <iostream>
 #include <fstream>
 export module WASAPIAudioEngine;
-import IAudioEngine;
+import IAudioProvider;
 
 #ifdef _DEBUG
 #define CHECK_WIN_ERR(ignore_code) { const DWORD res = GetLastError(); if(res != S_OK && res != ignore_code) std::cerr << "Error code " << res << " at line " << __LINE__ << '\n'; }
@@ -15,10 +15,11 @@ import IAudioEngine;
 #define CHECK_WIN_ERR() 
 #endif
 
-export class WASAPIAudioEngine : IAudioEngine
+//Note: Does not work
+export class WASAPIAudioProvider : IAudioProvider
 {
 	public:
-	~WASAPIAudioEngine()
+	~WASAPIAudioProvider()
 	{
 		deviceEnumerator->Release();
 		selectedDevice->Release();
@@ -26,7 +27,7 @@ export class WASAPIAudioEngine : IAudioEngine
 		CoUninitialize();
 	}
 
-	WASAPIAudioEngine()
+	WASAPIAudioProvider()
 	{
 		InitializeCOM();
 		SelectDefaultAudioOut();

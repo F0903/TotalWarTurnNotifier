@@ -1,8 +1,8 @@
 module;
 
-export module IAudioEngine;
+export module IAudioProvider;
 
-export class IAudioEngine
+export class IAudioProvider
 {
 	public:	
 	void virtual PlayFile(const char* path) = 0;

@@ -79,7 +79,7 @@ public:
 		constexpr size_t bufSize = 1;
 		char buf[bufSize];
 		SIZE_T count;
-		if (!ReadProcessMemory(info->process, (LPCVOID)(info->baseAddress + addressToRead), buf, bufSize, &count))
+		if (ReadProcessMemory(info->process, (LPCVOID)(info->baseAddress + addressToRead), buf, bufSize, &count) == 0)
 		{
 			const auto err = GetLastError();
 			const auto errStr = std::to_string(err).c_str();

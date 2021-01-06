@@ -6,13 +6,13 @@
 
 #include <Windows.h>
 
-import ShogunProcessReader;
-import PSAudioEngine;
+import WH2ProcessReader;
+import PSAudioProvider;
 
 int main()
 {
-	auto audio = PSAudioEngine();
-	const auto shogun = ShogunProcessReader();
+	auto audio = PSAudioProvider();
+	const auto proc = WH2ProcessReader();
 	while (true)
 	{
 		//TODO: Move this to custom console class.
@@ -20,7 +20,7 @@ int main()
 
 		try 
 		{ 
-			if (shogun.IsMyTurn())
+			if (proc.IsMyTurn())
 			{
 				std::cout << "It is your turn." << '\n';
 				audio.PlayFile("./media/sound.wav");

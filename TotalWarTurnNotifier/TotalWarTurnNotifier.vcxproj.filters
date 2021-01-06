@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="src\Program.cpp" />
+    <ClCompile Include="src\ProcessReaders\ProcessReader.ixx" />
+    <ClCompile Include="src\ProcessReaders\ShogunProcessReader.ixx" />
+    <ClCompile Include="src\AudioProviders\PSAudioProvider.ixx" />
+    <ClCompile Include="src\AudioProviders\IAudioProvider.ixx" />
+    <ClCompile Include="src\AudioProviders\WASAPIAudioProvider.ixx" />
+    <ClCompile Include="src\ProcessReaders\WH2ProcessReader.ixx" />
+  </ItemGroup>
+</Project>
